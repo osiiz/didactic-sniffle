@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientRepository {
+    // TODO: Obviamente la clave no deberia estar aqui
+    public static final String ENCRYPTION_KEY = "mango";
+
     public ClientRepository() {}
 
     public List<ClientData> getClients() {
@@ -33,11 +36,11 @@ public class ClientRepository {
      */
     public void registerClient(String username, String password) {
         Connection conn = Database.getConnection();
-        // TODO: Se deberia hashear la password
         try {
             PreparedStatement stmt = conn.prepareStatement("INSERT INTO clients (username, password) VALUES (?, ?)");
             stmt.setString(1, username);
-            stmt.setString(2, password);
+            String hashedPassword = AES.Encrypt(password, ENCRYPTION_KEY);
+            stmt.setString(2, hashedPassword);
             stmt.executeUpdate();
         } catch(SQLException e) {
             System.out.println(e.getMessage());
@@ -51,7 +54,7 @@ public class ClientRepository {
             stmt.setString(1, username);
             ResultSet set = stmt.executeQuery();
             if (set.next()) {
-                return set.getString("password").equals(password);
+                return set.getString("password").equals(AES.Encrypt(password, ENCRYPTION_KEY));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
