@@ -18,6 +18,7 @@ public class FriendRequestRepository {
             stmt.setString(2, friendRequest.getFrom());
             stmt.setString(3, friendRequest.getTo());
             stmt.executeUpdate();
+            stmt.close();
         } catch(SQLException e) {
             e.printStackTrace();
         }
@@ -34,6 +35,7 @@ public class FriendRequestRepository {
                 FriendRequest rq = new FriendRequest(rs.getTimestamp("time"),rs.getString("from_client"),rs.getString("to_client"));
                 friendRequests.add(rq);
             }
+            stmt.close();
         } catch(SQLException e) {
             e.printStackTrace();
         }
@@ -48,6 +50,7 @@ public class FriendRequestRepository {
             stmt.setString(1, friendRequest.getFrom());
             stmt.setTimestamp(2, friendRequest.getTimestamp());
             stmt.executeUpdate();
+            stmt.close();
         } catch(SQLException e) {
             e.printStackTrace();
         }
