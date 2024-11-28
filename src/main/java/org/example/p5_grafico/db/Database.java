@@ -1,4 +1,4 @@
-package org.example.p5_grafico;
+package org.example.p5_grafico.db;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

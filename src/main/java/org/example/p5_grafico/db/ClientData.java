@@ -1,4 +1,4 @@
-package org.example.p5_grafico;
+package org.example.p5_grafico.db;
 
 public class ClientData {
     private final String username;
