@@ -52,7 +52,7 @@ public class ControllerLogin {
                 showErrorAlert();
                 return;
             }
-            /*if (clientRepository.verifyClient(username, password)) {
+            if (clientRepository.verifyClient(username, password)) {
                 if (onLoginCallback != null) {
                     onLoginCallback.run(); // Ejecutar el callback
                 }
@@ -60,12 +60,12 @@ public class ControllerLogin {
                 closeWindow(); // Cerrar la ventana
             }else{
                 showErrorAlert();
-            }*/
-            if (onLoginCallback != null) {
+            }
+            /*if (onLoginCallback != null) {
                 onLoginCallback.run(); // Ejecutar el callback
             }
             openMainGUI();
-            closeWindow();
+            closeWindow();*/
         });
 
         btnExit.setOnAction(event -> closeWindow());

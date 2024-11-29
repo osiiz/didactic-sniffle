@@ -1,5 +1,6 @@
 package org.example.p5_grafico;
 
+import org.example.p5_grafico.db.ClientData;
 import org.example.p5_grafico.db.ClientRepository;
 
 import java.rmi.Naming;
