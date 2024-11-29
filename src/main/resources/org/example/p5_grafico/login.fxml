@@ -3,8 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="181.0" prefWidth="313.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="org.example.p5_grafico.ControllerLogin">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="181.0" prefWidth="313.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.p5_grafico.ControllerLogin">
    <children>
       <Label layoutX="14.0" layoutY="65.0" text="Username:" />
       <Label layoutX="16.0" layoutY="104.0" text="Password:" />
@@ -13,5 +12,6 @@
       <Label layoutX="109.0" layoutY="28.0" text="Welcome to P2PChat!" />
       <Button fx:id="btnEnter" layoutX="248.0" layoutY="137.0" mnemonicParsing="false" text="Enter" />
       <Button fx:id="btnExit" layoutX="14.0" layoutY="137.0" mnemonicParsing="false" text="Exit" />
+      <Button fx:id="btnRegister" layoutX="159.0" layoutY="137.0" mnemonicParsing="false" text="Register" />
    </children>
 </Pane>

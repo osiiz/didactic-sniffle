@@ -27,7 +27,7 @@ public class MessageRepository {
             stmt.setString(4, client1);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                Message msg = new Message(rs.getString("from_client"), rs.getString("to_client"), rs.getTimestamp("time"), rs.getString("content"))
+                Message msg = new Message(rs.getString("from_client"), rs.getString("to_client"), rs.getTimestamp("time"), rs.getString("content"));
                 messages.add(msg);
             }
             stmt.close();

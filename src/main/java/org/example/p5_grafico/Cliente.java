@@ -1,15 +1,18 @@
 package org.example.p5_grafico;
 
+import org.example.p5_grafico.db.ClientRepository;
+
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
-import java.util.Scanner;
 
 public class Cliente extends UnicastRemoteObject implements InterfazCliente{
 
     private String username;
-    public static void main(String[] args) throws  RemoteException{
+    private ClientRepository clientRepository = new ClientRepository();
+
+    public static void main(String[] args) throws RemoteException{
         new Cliente().start();
     }
     Cliente() throws RemoteException {
@@ -34,6 +37,8 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente{
 
         // Llamar a VentanaLogin en un nuevo hilo
         new Thread(() -> VentanaLogin.launch(VentanaLogin.class)).start();
+        // Abrir la gui principal
+
     }
 
     public void iniciarCliente() {
