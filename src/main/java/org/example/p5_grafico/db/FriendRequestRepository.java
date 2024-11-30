@@ -23,7 +23,7 @@ public class FriendRequestRepository {
             e.printStackTrace();
         }
     }
-    List<FriendRequest> getFriendRequestsFromClient(FriendRequest friendRequest, String client) {
+    List<FriendRequest> getFriendRequestsFromClient(String client) {
         Connection connection = Database.getConnection();
         List<FriendRequest> friendRequests = new ArrayList<>();
 

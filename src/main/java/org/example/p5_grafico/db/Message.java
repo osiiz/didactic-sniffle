@@ -29,4 +29,9 @@ public class Message {
     public String getContent() {
         return content;
     }
+
+    @Override
+    public String toString() {
+        return String.format("[%s] %s: %s", timestamp, from, content);
+    }
 }

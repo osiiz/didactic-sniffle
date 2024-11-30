@@ -3,7 +3,7 @@ package org.example.p5_grafico.db;
 public class ClientData {
     private final String username;
     private final String password;
-    ClientData(String username, String password) {
+    public ClientData(String username, String password) {
         this.username = username;
         this.password = password;
     }
