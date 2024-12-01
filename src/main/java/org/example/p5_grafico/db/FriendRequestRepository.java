@@ -55,4 +55,21 @@ public class FriendRequestRepository {
             e.printStackTrace();
         }
     }
+
+    List<String> getFriendsFrom(String client) {
+        Connection connection = Database.getConnection();
+        List<String> friends = new ArrayList<>();
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT friend FROM friends WHERE id like ?");
+            stmt.setString(1, client);
+            ResultSet set = stmt.executeQuery();
+            while(set.next()) {
+                friends.add(set.getString("friend"));
+            }
+            stmt.close();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return friends;
+    }
 }
