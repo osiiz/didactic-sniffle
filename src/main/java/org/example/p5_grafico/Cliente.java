@@ -15,12 +15,15 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
 
     private String username;
     private String password;
-    private ClientRepository clientRepository = new ClientRepository();
-    private ControllerMsgGui ControllerMsgGui = new ControllerMsgGui();
-
-    private Map<String, List<InterfazMessage>> chats;
-
+    private final Map<String, List<InterfazMessage>> chats;
+    private final Map<String, InterfazCliente> connectedClients;
     private static Cliente instancia;
+
+    public Cliente() throws RemoteException {
+        super();
+        this.chats = new HashMap<>();
+        this.connectedClients = new HashMap<>();
+    }
 
     public static Cliente Get() {
         if (instancia == null) {
@@ -35,11 +38,6 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
 
     public static void main(String[] args) throws RemoteException {
         Cliente.Get().start();
-    }
-
-    Cliente() throws RemoteException {
-        super();
-        this.chats = new HashMap<>();
     }
 
     public String getName() {
@@ -64,41 +62,56 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
     }
 
     public Boolean sendMessage(String other, String content) throws RemoteException {
+
+        InterfazServidor server = getServer();
         Message msg = new Message(username, other, new Timestamp(System.currentTimeMillis()), content);
         try {
-            List<InterfazCliente> clients = getServer().listClients(this);
-            InterfazCliente client = null;
-            for (InterfazCliente c : clients) {
-                if (c.getName().equals(other)) {
-                    client = c;
-                    break;
+
+            // Caso en el que sabemos si esta conectado
+            if (this.connectedClients.containsKey(other) && this.connectedClients.get(other) != null) {
+                InterfazCliente client = this.connectedClients.get(other);
+                client.receiveMessage(this, msg);
+
+                if (!this.chats.containsKey(other)) {
+                    this.chats.put(other, new ArrayList<>());
                 }
+                this.chats.get(other).add(msg);
+
+                return true;
+            }
+            // Caso si no sabemos que esta conectado(p.e si se conecto antes de nosotros)
+            InterfazCliente client = server.isConnected(this, this.password, other);
+            if (client != null) {
+                this.connectedClients.put(other, client);
+                client.receiveMessage(this, msg);
+
+                if (!this.chats.containsKey(other)) {
+                    this.chats.put(other, new ArrayList<>());
+                }
+                this.chats.get(other).add(msg);
+
+                return true;
             }
 
-            if (client == null) {
-                return false;
-            }
-            client.receiveMessage(this, (InterfazMessage) msg);
+            // Caso desconectado
+            server.saveMessages(this, this.password, List.of(msg));
 
         } catch (RemoteException e) {
-            System.out.println(e.getMessage());
+            System.out.println("[!] Error(sendMessage): " + e.getMessage());
             return false;
         }
+
+
         if (!this.chats.containsKey(other)) {
             this.chats.put(other, new ArrayList<>());
         }
         this.chats.get(other).add(msg);
+
         return true;
     }
 
 
     public void start() {
-        // Configurar el callback de login
-        ControllerLogin.setOnLoginCallback(() -> {
-            //username = ControllerLogin.getUsername(); // Obtener el username
-        });
-
-        // Llamar a VentanaLogin en un nuevo hilo
         new Thread(() -> VentanaLogin.launch(VentanaLogin.class)).start();
     }
 
@@ -108,43 +121,40 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         try {
             return (InterfazServidor) Naming.lookup(registryURL);
         } catch (Exception e) {
-            System.out.println("Exception in Cliente: " + e);
-            e.printStackTrace();
+            System.out.println("[!] Error(getServer): " + e.getMessage());
         }
         return null;
     }
 
-    public boolean conect(String username, String password) {
-        String registryURL = "rmi://localhost:" + Servidor.PORT + "/p2p";
+    public boolean connect(String username, String password) {
+        InterfazServidor server = getServer();
         try {
-            InterfazServidor p2p = (InterfazServidor) Naming.lookup(registryURL);
-            boolean status = p2p.connect(this, username, password);
+
+            boolean status = server.connect(this, username, password);
             if (status) {
                 this.username = username;
-                System.out.println("Username>" + this.username);
                 this.password = password;
                 fillChats();
             }
             return status;
         } catch (Exception e) {
-            System.out.println("Exception in Cliente: " + e);
-            e.printStackTrace();
+            System.out.println("[!] Error(connect): " + e.getMessage());
         }
+
         return false;
     }
 
     private void fillChats() {
         InterfazServidor server = getServer();
         try {
-            List<InterfazCliente> clients = server.listClients(this);
-            for (InterfazCliente c : clients) {
-                List<InterfazMessage> msgs = server.getChat(this, this.password, c.getName());
-                System.out.println(msgs);
-                this.chats.put(c.getName(), msgs);
+            Set<String> clients = server.listClients(this);
+            for (String c : clients) {
+                List<InterfazMessage> msgs = server.getChat(this, this.password, c);
+                this.chats.put(c, msgs);
             }
+
         } catch (RemoteException e) {
-            System.out.println("Exception in Cliente: " + e);
-            e.printStackTrace();
+            System.out.println("[!] Error(fillchats): " + e.getMessage());
         }
     }
 
@@ -161,19 +171,22 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         try {
             getServer().saveMessages(this, this.password, msgs);
         } catch (RemoteException e) {
-            System.out.println("Exception in Cliente: " + e);
-            e.printStackTrace();
+            System.out.println("[!] Error(saveMessages): " + e.getMessage());
         }
     }
 
     @Override
-    public void notifyConnection(String other) throws RemoteException {
-        if (!this.chats.containsKey(getName())) {
-            List<InterfazMessage> msgs = getServer().getChat(this, this.password, other);
-            this.chats.put(other, msgs);
+    public void notifyConnection(InterfazCliente other, String username) throws RemoteException {
+        if (!this.chats.containsKey(username)) {
+            List<InterfazMessage> msgs = getServer().getChat(this, this.password, username);
+            this.chats.put(username, msgs);
         }
-        System.out.println("[+]Connection from " + other);
-        System.out.println("Amigos>" + getFriends());
+
+        if (!this.connectedClients.containsKey(username) || this.connectedClients.get(username) == null) {
+           this.connectedClients.put(username, other);
+        }
+
+        // TODO: Igual poner que se abra una ventana en la gui para avisar
     }
 }
 

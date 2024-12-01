@@ -55,7 +55,7 @@ public class ControllerLogin {
                 showErrorAlert();
                 return;
             }
-            if (c.conect(username, password)) {
+            if (c.connect(username, password)) {
                 if (onLoginCallback != null) {
                     onLoginCallback.run(); // Ejecutar el callback
                 }

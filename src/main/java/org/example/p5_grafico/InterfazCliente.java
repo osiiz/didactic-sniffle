@@ -8,5 +8,5 @@ public interface InterfazCliente extends Remote {
 
     String getName() throws RemoteException;
     void receiveMessage(InterfazCliente client, InterfazMessage msg) throws RemoteException;
-    void notifyConnection(String other) throws RemoteException;
+    void notifyConnection(InterfazCliente other, String username) throws RemoteException;
 }

@@ -1,21 +1,20 @@
 package org.example.p5_grafico;
 
 import javafx.application.Platform;
+import org.example.p5_grafico.db.ClientData;
 import org.example.p5_grafico.db.ClientRepository;
 import org.example.p5_grafico.db.Message;
 import org.example.p5_grafico.db.MessageRepository;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
+
 public class ImplServidor extends UnicastRemoteObject implements InterfazServidor {
 
-    private Map<String, InterfazCliente> clients;
-    private ClientRepository clientRepo;
-    private MessageRepository msgRepo;
+    private final Map<String, InterfazCliente> clients;
+    private final ClientRepository clientRepo;
+    private final MessageRepository msgRepo;
 
 
     public ImplServidor() throws RemoteException {
@@ -24,34 +23,38 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
         clientRepo = new ClientRepository();
         msgRepo = new MessageRepository();
     }
+
     @Override
     public boolean connect(InterfazCliente cliente, String username, String password) throws RemoteException {
         if (clientRepo.verifyClient(username, password)) {
             for (InterfazCliente c: clients.values()) {
-                //System.out.println("Notifying connection to " + c.getName());
-                c.notifyConnection(username);
+                c.notifyConnection(cliente, username);
             }
+
             clients.put(username, cliente);
-            System.out.println("[+]Client \"" + username + "\" connected.");
-            //status();
+            System.out.println("[+] Client \"" + username + "\" connected.");
             return true;
         }
         return false;
     }
 
     @Override
-    public List<InterfazCliente> listClients(InterfazCliente client) throws RemoteException {
+    public Set<String> listClients(InterfazCliente client) throws RemoteException {
         if (!clients.containsKey(client.getName())) {
-            return List.of();
+            return Set.of();
         }
-        List<InterfazCliente> r = new ArrayList<>();
-        //status();
+        Set<String> r = new HashSet<>();
         for (Map.Entry<String, InterfazCliente> entry: clients.entrySet()) {
             if (entry.getKey().equals(client.getName())) {
                 continue;
             }
-            r.add(entry.getValue());
-            System.out.println(entry.getKey());
+            r.add(entry.getKey());
+        }
+        for (ClientData c: clientRepo.getClients()) {
+            if (c.getUsername().equals(client.getName())) {
+                continue;
+            }
+            r.add(c.getUsername());
         }
         return r;
     }
@@ -73,11 +76,12 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
 
     }
 
-    public void status() {
-        System.out.println("[+] Status:\n");
-        for (Map.Entry<String, InterfazCliente> e : this.clients.entrySet()) {
-            System.out.println(String.format("\t[+] %s\n", e.getKey()));
+    @Override
+    public InterfazCliente isConnected(InterfazCliente client, String password, String other) throws RemoteException {
+        if(!clientRepo.verifyClient(client.getName(), password) || !clients.containsKey(client.getName())) {
+            return null;
         }
+        return this.clients.get(other);
     }
 }
 
