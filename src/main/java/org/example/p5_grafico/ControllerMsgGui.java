@@ -1,5 +1,6 @@
 package org.example.p5_grafico;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -24,6 +25,8 @@ public class ControllerMsgGui {
     private MessageRepository messageRepository = new MessageRepository();
     private List<InterfazMessage> liveMsgs; // Mensajes que se envian mientras el cliente esta activo. Estos luego se irian a la BD
     private Cliente client; // Cliente al que se le esta enviando
+    private InterfazServidor servidor;
+    private Stage stage;
 
     @FXML
     private TextField txtMsg;
@@ -41,13 +44,11 @@ public class ControllerMsgGui {
     private Button btnRemoveFriends;
     @FXML
     private Button btnFriendReq;
-    @FXML
-    public void initialize() {
-    }
 
 
-    public void initializeData(Cliente client) {
+    public void initializeData(Cliente client, InterfazServidor servidor) {
         this.client = client;
+        this.servidor = servidor;
         liveMsgs = new ArrayList<>();
         btnSend.setDisable(true);
         lvMsgs.setCellFactory(param -> new ListCell<HBox>() {
@@ -115,30 +116,38 @@ public class ControllerMsgGui {
             } catch (RemoteException e) {
                 throw new RuntimeException(e);
             }
+            int charNombre = client.getName().length() + 4; // 4 = 2 corchetes + 2 puntos + 1 espacio
+            Label mensaje = new Label("[" + client.getName() + "]: " + dividirEnLineas(content, 50, charNombre));
+            lvMsgs.getItems().add(rightMessage(mensaje));
             if (enviado){
-                int charNombre = client.getName().length() + 4; // 4 = 2 corchetes + 2 puntos + 1 espacio
-                Label mensaje = new Label("[" + client.getName() + "]: " + dividirEnLineas(content, 50, charNombre));
-                lvMsgs.getItems().add(rightMessage(mensaje));
                 try {
                     liveMsgs.add(new Message(client.getName(), to, new Timestamp(System.currentTimeMillis()), content));
                 } catch (RemoteException e) {
                     throw new RuntimeException(e);
                 }
-                lvMsgs.scrollTo(lvMsgs.getItems().size() - 1);
             }
+            lvMsgs.scrollTo(lvMsgs.getItems().size() - 1);
             txtMsg.clear();
         });
 
         btnRemoveFriends.setOnAction(event -> {
-            new FriendsWindow(client).start(new Stage());
+            new FriendsWindow(client, servidor).start(new Stage());
+        });
+
+        btnFriendReq.setOnAction(event -> {
+            new RequestsWindow(client, servidor).start(new Stage());
         });
 
         btnExit.setOnAction(event -> {
-            client.saveMessages(liveMsgs);
-            System.exit(0);
+            client.disconnect(liveMsgs);
+            this.stage.close();
+        });
+
+        this.stage.setOnCloseRequest(event -> {
+            System.out.println("Guardando mensajes...");
+            client.disconnect(liveMsgs);
         });
     }
-
 
     public void receiveMessage(Message msg) {
         if (cbUsers.getValue() == null || !cbUsers.getValue().equals(msg.getFrom())) {
@@ -158,7 +167,7 @@ public class ControllerMsgGui {
         cbUsers.getItems().addAll(client.getFriends());
     }
 
-    public static String dividirEnLineas(String texto, int ancho, int charNombre) {
+    public String dividirEnLineas(String texto, int ancho, int charNombre) {
         StringBuilder resultado = new StringBuilder();
         int longitud = texto.length();
         int anchoFirstLine = ancho - charNombre;
@@ -179,6 +188,7 @@ public class ControllerMsgGui {
 
         return resultado.toString();
     }
+
 
 
     public HBox rightMessage(Label mensaje) {
@@ -207,5 +217,7 @@ public class ControllerMsgGui {
     }
 
 
-
+    public void setStage(Stage stage) {
+        this.stage = stage;
+    }
 }

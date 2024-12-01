@@ -10,7 +10,7 @@ import java.util.List;
 public class FriendRequestRepository {
     public FriendRequestRepository() {}
 
-    void addFriendRequest(FriendRequest friendRequest) {
+    public void addFriendRequest(FriendRequest friendRequest) {
         Connection connection = Database.getConnection();
         try {
             PreparedStatement stmt = connection.prepareStatement("INSERT INTO friend_requests(time, from_client, to_client) VALUES (?, ?, ?)");
@@ -23,7 +23,7 @@ public class FriendRequestRepository {
             e.printStackTrace();
         }
     }
-    List<FriendRequest> getFriendRequestsFromClient(String client) {
+    public List<FriendRequest> getFriendRequestsFromClient(String client) {
         Connection connection = Database.getConnection();
         List<FriendRequest> friendRequests = new ArrayList<>();
 
@@ -43,7 +43,27 @@ public class FriendRequestRepository {
         return friendRequests;
     }
 
-    void removeFriendRequest(FriendRequest friendRequest) {
+    public List<FriendRequest> getFriendRequestsToClient(String client) {
+        Connection connection = Database.getConnection();
+        List<FriendRequest> friendRequests = new ArrayList<>();
+
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM friend_requests WHERE to_client=?");
+            stmt.setString(1, client);
+            ResultSet rs = stmt.executeQuery();
+            while(rs.next()) {
+                FriendRequest rq = new FriendRequest(rs.getTimestamp("time"),rs.getString("from_client"),rs.getString("to_client"));
+                friendRequests.add(rq);
+            }
+            stmt.close();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+
+        return friendRequests;
+    }
+
+    public void removeFriendRequest(FriendRequest friendRequest) {
         Connection connection = Database.getConnection();
         try {
             PreparedStatement stmt = connection.prepareStatement("DELETE FROM friend_requests WHERE from_client=? and time=?");
@@ -56,7 +76,7 @@ public class FriendRequestRepository {
         }
     }
 
-    List<String> getFriendsFrom(String client) {
+    public List<String> getFriendsFrom(String client) {
         Connection connection = Database.getConnection();
         List<String> friends = new ArrayList<>();
         try {
@@ -71,5 +91,35 @@ public class FriendRequestRepository {
             e.printStackTrace();
         }
         return friends;
+    }
+
+    public void removeFriends(String from, String other) {
+        Connection connection = Database.getConnection();
+        try {
+            PreparedStatement stmt = connection.prepareStatement("DELETE FROM friends WHERE (id like ? and friend like ?) or (id like ? and friend like ?)");
+            stmt.setString(1, from);
+            stmt.setString(2, other);
+            stmt.setString(3, other);
+            stmt.setString(4, from);
+            stmt.executeUpdate();
+            stmt.close();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addFriend(String one, String two) {
+        Connection connection = Database.getConnection();
+        try {
+            PreparedStatement stmt = connection.prepareStatement("INSERT INTO friends(id, friend) VALUES(?,?),(?, ?)");
+            stmt.setString(1, one);
+            stmt.setString(2, two);
+            stmt.setString(3, two);
+            stmt.setString(4, one);
+            stmt.executeUpdate();
+            stmt.close();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

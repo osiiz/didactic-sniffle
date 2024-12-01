@@ -1,13 +1,11 @@
 package org.example.p5_grafico;
 
 import javafx.application.Platform;
-import org.example.p5_grafico.db.ClientData;
-import org.example.p5_grafico.db.ClientRepository;
-import org.example.p5_grafico.db.Message;
-import org.example.p5_grafico.db.MessageRepository;
+import org.example.p5_grafico.db.*;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.sql.Timestamp;
 import java.util.*;
 
 public class ImplServidor extends UnicastRemoteObject implements InterfazServidor {
@@ -15,6 +13,7 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
     private final Map<String, InterfazCliente> clients;
     private final ClientRepository clientRepo;
     private final MessageRepository msgRepo;
+    private final FriendRequestRepository frRepo;
 
 
     public ImplServidor() throws RemoteException {
@@ -22,6 +21,7 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
         clients = new HashMap<>();
         clientRepo = new ClientRepository();
         msgRepo = new MessageRepository();
+        frRepo = new FriendRequestRepository();
     }
 
     @Override
@@ -55,6 +55,7 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
         if (!clients.containsKey(client.getName())) {
             return Set.of();
         }
+        /*
         Set<String> r = new HashSet<>();
         for (Map.Entry<String, InterfazCliente> entry: clients.entrySet()) {
             if (entry.getKey().equals(client.getName())) {
@@ -67,8 +68,8 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
                 continue;
             }
             r.add(c.getUsername());
-        }
-        return r;
+        }*/
+        return new HashSet<>(frRepo.getFriendsFrom(client.getName()));
     }
 
     @Override
@@ -94,6 +95,66 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
             return null;
         }
         return this.clients.get(other);
+    }
+
+    @Override
+    public void sendFriendRequest(InterfazCliente client, String password, String other) throws RemoteException {
+        if(!clientRepo.verifyClient(client.getName(), password) || !clients.containsKey(client.getName())) {
+            return;
+        }
+        frRepo.addFriendRequest(new FriendRequest(new Timestamp(System.currentTimeMillis()), client.getName(), other));
+    }
+
+    @Override
+    public Set<String> getFriendRequests(InterfazCliente client, String password) throws RemoteException {
+        if(!clientRepo.verifyClient(client.getName(), password) || !clients.containsKey(client.getName())) {
+            return Set.of();
+        }
+        List<FriendRequest> requests = frRepo.getFriendRequestsToClient(client.getName());
+        Set<String> result = new HashSet<>();
+        for (FriendRequest fr : requests) {
+            result.add(fr.getFrom());
+        }
+        return result;
+    }
+
+    @Override
+    public void removeFriends(InterfazCliente client, String password, String other) throws RemoteException {
+        if(!clientRepo.verifyClient(client.getName(), password) || !clients.containsKey(client.getName())) {
+            return;
+        }
+        frRepo.removeFriends(client.getName(), other);
+    }
+
+    @Override
+    public void saveRequests(InterfazCliente cliente, String password, Set<String> requests) throws RemoteException {
+        if(!clientRepo.verifyClient(cliente.getName(), password) || !clients.containsKey(cliente.getName())) {
+            return;
+        }
+        for (String other: requests) {
+            FriendRequest fr = new FriendRequest(new Timestamp(System.currentTimeMillis()), cliente.getName(), other);
+            frRepo.addFriendRequest(fr);
+        }
+    }
+
+    @Override
+    public void acceptFriendRequest(InterfazCliente client, String password, String other) throws RemoteException {
+        if(!clientRepo.verifyClient(client.getName(), password) || !clients.containsKey(client.getName())) {
+            return;
+        }
+        List<FriendRequest> requests = frRepo.getFriendRequestsToClient(client.getName());
+        FriendRequest fr = null;
+        for (FriendRequest request: requests) {
+            if (request.getFrom().equals(other)) {
+                fr = request;
+                break;
+            }
+        }
+        if (fr == null) {
+            return;
+        }
+        frRepo.removeFriendRequest(fr);
+        frRepo.addFriend(client.getName(), other);
     }
 }
 

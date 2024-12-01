@@ -94,7 +94,8 @@ public class ControllerLogin {
 
             // Obtener el controlador de la GUI principal para pasar datos
             trapallada = loader.getController();
-            trapallada.initializeData(Cliente.Get()); // Pasar el nombre de usuario
+            trapallada.setStage(stage);
+            trapallada.initializeData(Cliente.Get(), Cliente.Get().getServer()); // Pasar el nombre de usuario
 
             stage.setTitle("P2P Chat - Principal");
             stage.setScene(scene);

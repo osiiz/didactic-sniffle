@@ -14,4 +14,11 @@ public interface InterfazServidor extends Remote {
     List<InterfazMessage> getChat(InterfazCliente cliente, String password, String other) throws RemoteException;
     void saveMessages(InterfazCliente cliente, String password,List<InterfazMessage> msgs) throws RemoteException;
     InterfazCliente isConnected(InterfazCliente client, String password, String other) throws RemoteException;
+
+
+    void sendFriendRequest(InterfazCliente client, String password, String other) throws  RemoteException;
+    Set<String> getFriendRequests(InterfazCliente client, String password) throws RemoteException;
+    void acceptFriendRequest(InterfazCliente client, String password, String other) throws  RemoteException;
+    void removeFriends(InterfazCliente client, String password, String other) throws RemoteException;
+    void saveRequests(InterfazCliente cliente, String password,Set<String> requests) throws RemoteException;
 }

@@ -7,12 +7,12 @@ import org.example.p5_grafico.db.Message;
 
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.server.RemoteRef;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.Timestamp;
 import java.util.*;
 
 public class Cliente extends UnicastRemoteObject implements InterfazCliente {
-
     private String username;
     private String password;
     private final Map<String, List<InterfazMessage>> chats;
@@ -44,6 +44,10 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         return username;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
     @Override
     public void receiveMessage(InterfazCliente client, InterfazMessage msg) throws RemoteException {
         String name = client.getName();
@@ -62,7 +66,6 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
     }
 
     public Boolean sendMessage(String other, String content) throws RemoteException {
-
         InterfazServidor server = getServer();
         Message msg = new Message(username, other, new Timestamp(System.currentTimeMillis()), content);
         try {
@@ -107,7 +110,7 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         }
         this.chats.get(other).add(msg);
 
-        return true;
+        return false;
     }
 
 
@@ -152,7 +155,6 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
                 List<InterfazMessage> msgs = server.getChat(this, this.password, c);
                 this.chats.put(c, msgs);
             }
-
         } catch (RemoteException e) {
             System.out.println("[!] Error(fillchats): " + e.getMessage());
         }
@@ -187,19 +189,58 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         }
 
         // TODO: Igual poner que se abra una ventana en la gui para avisar
+
     }
 
     @Override
     public void notifyDisconnection(InterfazCliente other) throws RemoteException {
         this.connectedClients.remove(other.getName());
     }
+
     // TODO: Usar esta funcion cuando se le da a la X o cuando se hace exit
-    public void disconnect() {
+    public void disconnect(List<InterfazMessage> liveMsgs) {
         try {
+            getServer().saveMessages(this, this.password, liveMsgs);
             getServer().disconnect(this, this.password); // Notifica que se desconecta al cliente
             System.exit(0);
         } catch (RemoteException e) {
             System.out.println("[!] Error(disconnect): " + e.getMessage());
+        }
+    }
+    public void sendFriendRequest(String other) {
+        InterfazServidor server = getServer();
+        try {
+            server.sendFriendRequest(this, this.password, other);
+        } catch (RemoteException e) {
+            System.out.println("[!] Error(sendFriendRequest): " + e.getMessage());
+        }
+    }
+
+
+    public Set<String> getPendingRequests() {
+        try {
+            return getServer().getFriendRequests(this, this.password);
+        } catch(RemoteException e) {
+            System.out.println("[!] Error(getPendingRequests): " + e.getMessage());
+        }
+        return Set.of();
+    }
+
+    public void removeFriend(String other) {
+        try {
+            getServer().removeFriends(this, this.password, other);
+        } catch(RemoteException e) {
+            System.out.println("[!] Error(removeFriend): " +  e.getMessage());
+        }
+    }
+
+    public void acceptFriendRequest(String other) {
+        try {
+            if (getPendingRequests().contains(other)) {
+                getServer().acceptFriendRequest(this, this.password, other);
+            }
+        } catch(RemoteException e) {
+            System.out.println("[!] Error(acceptFriendRequest): " +  e.getMessage());
         }
     }
 }

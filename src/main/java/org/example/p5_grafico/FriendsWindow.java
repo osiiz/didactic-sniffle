@@ -11,9 +11,11 @@ import javafx.stage.Stage;
 
 public class FriendsWindow extends Application {
     private Cliente client;
+    private InterfazServidor servidor;
 
-    public FriendsWindow(Cliente client) {
+    public FriendsWindow(Cliente client, InterfazServidor servidor) {
         this.client = client;
+        this.servidor = servidor;
     }
 
     @Override
@@ -35,6 +37,7 @@ public class FriendsWindow extends Application {
             String seleccionado = listView.getSelectionModel().getSelectedItem();
             if (seleccionado != null) {
                 friends.remove(seleccionado); // Eliminar el amigo de la lista
+                client.removeFriend(seleccionado); // Eliminar el amigo de la base de datos
             }
         });
 
@@ -52,11 +55,6 @@ public class FriendsWindow extends Application {
         stage.setTitle("Lista de Amigos");
         stage.setScene(scene);
         stage.show();
-    }
-
-    // Método principal para ejecutar como aplicación independiente
-    public static void main(String[] args) {
-        launch(args);
     }
 }
 
