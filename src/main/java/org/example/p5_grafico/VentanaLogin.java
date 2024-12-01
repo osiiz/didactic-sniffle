@@ -7,9 +7,10 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.net.URL;
 
 public class VentanaLogin extends Application {
+    Cliente c;
+
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -23,6 +24,6 @@ public class VentanaLogin extends Application {
     }
 
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
 }

@@ -1,5 +1,8 @@
 package org.example.p5_grafico.db;
 
+import org.example.p5_grafico.InterfazMessage;
+
+import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,9 +19,9 @@ public class MessageRepository {
      * @param client2 username del otro cliente
      * @return lista de mensajes entre dos clientes
      */
-    public List<Message> getChat(String client1, String client2) {
+    public List<InterfazMessage> getChat(String client1, String client2) {
         Connection conn = Database.getConnection();
-        List<Message> messages = new ArrayList<>();
+        List<InterfazMessage> messages = new ArrayList<>();
         try {
             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM messages WHERE (from_client like ? and to_client like ?) or (from_client like ? and to_client like ?)");
             stmt.setString(1, client1);
@@ -33,11 +36,13 @@ public class MessageRepository {
             stmt.close();
         } catch(SQLException e) {
             e.printStackTrace();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
         }
         return messages;
     }
 
-    public void saveMessage(Message msg) {
+    public void saveMessage(InterfazMessage msg) throws RemoteException {
         Connection conn = Database.getConnection();
         try {
            PreparedStatement stmt = conn.prepareStatement("INSERT INTO messages(from_client, to_client, time, content) VALUES (?, ?, ?, ?)");
@@ -52,8 +57,8 @@ public class MessageRepository {
         }
     }
 
-    public void saveMessages(List<Message> msgs) {
-        for(Message msg : msgs) {
+    public void saveMessages(List<InterfazMessage> msgs) throws RemoteException {
+        for(InterfazMessage msg : msgs) {
             saveMessage(msg);
         }
     }

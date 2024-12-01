@@ -28,6 +28,7 @@ public class ControllerLogin {
     @FXML
     private Button btnRegister;
 
+
     private static String username;
     private static String password;
     private static Runnable onLoginCallback;
@@ -42,9 +43,11 @@ public class ControllerLogin {
     }
 
     public static String getPassword() {return password;}
+    public static ControllerMsgGui trapallada;
 
     @FXML
     private void initialize() {
+        Cliente c = Cliente.Get();
         btnEnter.setOnAction(event -> {
             username = txtUsername.getText();
             password = txtPass.getText();
@@ -52,7 +55,7 @@ public class ControllerLogin {
                 showErrorAlert();
                 return;
             }
-            if (clientRepository.verifyClient(username, password)) {
+            if (c.conect(username, password)) {
                 if (onLoginCallback != null) {
                     onLoginCallback.run(); // Ejecutar el callback
                 }
@@ -61,11 +64,6 @@ public class ControllerLogin {
             }else{
                 showErrorAlert();
             }
-            /*if (onLoginCallback != null) {
-                onLoginCallback.run(); // Ejecutar el callback
-            }
-            openMainGUI();
-            closeWindow();*/
         });
 
         btnExit.setOnAction(event -> closeWindow());
@@ -92,8 +90,8 @@ public class ControllerLogin {
             Scene scene = new Scene(loader.load());
 
             // Obtener el controlador de la GUI principal para pasar datos
-            ControllerMsgGui controller = loader.getController();
-            controller.initializeData(username); // Pasar el nombre de usuario
+            trapallada = loader.getController();
+            trapallada.initializeData(Cliente.Get()); // Pasar el nombre de usuario
 
             stage.setTitle("P2P Chat - Principal");
             stage.setScene(scene);
@@ -115,5 +113,4 @@ public class ControllerLogin {
         Stage stage = (Stage) btnExit.getScene().getWindow();
         stage.close();
     }
-
 }
