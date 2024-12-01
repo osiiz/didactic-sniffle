@@ -188,5 +188,19 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
 
         // TODO: Igual poner que se abra una ventana en la gui para avisar
     }
+
+    @Override
+    public void notifyDisconnection(InterfazCliente other) throws RemoteException {
+        this.connectedClients.remove(other.getName());
+    }
+    // TODO: Usar esta funcion cuando se le da a la X o cuando se hace exit
+    public void disconnect() {
+        try {
+            getServer().disconnect(this, this.password); // Notifica que se desconecta al cliente
+            System.exit(0);
+        } catch (RemoteException e) {
+            System.out.println("[!] Error(disconnect): " + e.getMessage());
+        }
+    }
 }
 

@@ -39,6 +39,18 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
     }
 
     @Override
+    public void disconnect(InterfazCliente cliente, String password) throws RemoteException {
+        if(!clientRepo.verifyClient(cliente.getName(), password) || !clients.containsKey(cliente.getName())) {
+            return;
+        }
+        clients.remove(cliente.getName());
+        for (InterfazCliente c: clients.values()) {
+            c.notifyDisconnection(cliente);
+        }
+        System.out.println("[-] Client \"" + cliente.getName() + "\" disconnected.");
+    }
+
+    @Override
     public Set<String> listClients(InterfazCliente client) throws RemoteException {
         if (!clients.containsKey(client.getName())) {
             return Set.of();
