@@ -80,29 +80,11 @@ public class ControllerMsgGui {
                     Label mensaje = new Label("[" + msg.getFrom() + "]: " + dividirEnLineas(msg.getContent(), 50, charNombre));
 
                     if (msg.getFrom().equals(client.getName())) {
-                        mensaje.setStyle("-fx-background-color: lightblue; -fx-padding: 10; -fx-border-radius: 10; -fx-background-radius: 10;");
-                        // Crear el HBox interno (que se ajusta al contenido)
-                        HBox hBoxInterno = new HBox(mensaje);
-                        hBoxInterno.setAlignment(Pos.CENTER_RIGHT); // Alinear el contenido del HBox interno a la derecha
-                        hBoxInterno.setMaxWidth(Region.USE_PREF_SIZE); // Asegurar que el ancho se ajuste al contenido
-
-                        // Crear el HBox externo (que ocupa todo el ancho del ListView)
-                        HBox hBoxExterno = new HBox(hBoxInterno);
-                        hBoxExterno.setAlignment(Pos.CENTER_RIGHT); // Forzar que el HBox interno esté alineado a la derecha
-                        lvMsgs.getItems().add(hBoxExterno);
+                        lvMsgs.getItems().add(rightMessage(mensaje));
                     } else {
-                        mensaje.setStyle("-fx-background-color: lightgreen; -fx-padding: 10; -fx-border-radius: 10; -fx-background-radius: 10;");
-
-                        HBox hBoxInternoIzquierda = new HBox(mensaje);
-                        hBoxInternoIzquierda.setAlignment(Pos.CENTER_LEFT); // Alinear a la izquierda
-                        hBoxInternoIzquierda.setMaxWidth(Region.USE_PREF_SIZE);
-
-                        HBox hBoxExternoIzquierda = new HBox(hBoxInternoIzquierda);
-                        hBoxExternoIzquierda.setAlignment(Pos.CENTER_LEFT);
-                        lvMsgs.getItems().add(hBoxExternoIzquierda);
+                        lvMsgs.getItems().add(leftMessage(mensaje));
                     }
                 }
-
                 lvMsgs.scrollTo(msgs.size() - 1);
             } catch (RemoteException e) {
                 System.out.println(e.getMessage());
@@ -123,10 +105,8 @@ public class ControllerMsgGui {
             }
             if (enviado){
                 int charNombre = client.getName().length() + 4; // 4 = 2 corchetes + 2 puntos + 1 espacio
-                HBox msgBox = new HBox(new Label("[" + client.getName() + "]: " + dividirEnLineas(content, 50, charNombre)));
-                msgBox.setAlignment(Pos.CENTER_RIGHT);
-                msgBox.setStyle("-fx-background-color: lightblue; -fx-padding: 10; -fx-border-radius: 10; -fx-background-radius: 10;");
-                lvMsgs.getItems().add(msgBox);
+                Label mensaje = new Label("[" + client.getName() + "]: " + dividirEnLineas(content, 50, charNombre));
+                lvMsgs.getItems().add(rightMessage(mensaje));
                 try {
                     liveMsgs.add(new Message(client.getName(), to, new Timestamp(System.currentTimeMillis()), content));
                 } catch (RemoteException e) {
@@ -148,10 +128,8 @@ public class ControllerMsgGui {
         HBox msgBox;
         String content = msg.getContent();
         int charNombre = msg.getFrom().length() + 4; // 4 = 2 corchetes + 2 puntos + 1 espacio
-        msgBox = new HBox(new Label("[" + msg.getFrom() + "]: " + dividirEnLineas(content, 50, charNombre)));
-        msgBox.setAlignment(Pos.CENTER_LEFT);
-        msgBox.setStyle("-fx-background-color: lightgreen; -fx-padding: 10; -fx-border-radius: 10; -fx-background-radius: 10;");
-        lvMsgs.getItems().add(msgBox);
+        Label mensaje = new Label("[" + msg.getFrom() + "]: " + dividirEnLineas(content, 50, charNombre));
+        lvMsgs.getItems().add(leftMessage(mensaje));
         lvMsgs.refresh();
         lvMsgs.scrollTo(lvMsgs.getItems().size() - 1);
     }
@@ -182,6 +160,33 @@ public class ControllerMsgGui {
 
         return resultado.toString();
     }
+
+
+    public HBox rightMessage(Label mensaje) {
+        mensaje.setStyle("-fx-background-color: lightblue; -fx-padding: 10; -fx-border-radius: 10; -fx-background-radius: 10;");
+        // Crear el HBox interno (que se ajusta al contenido)
+        HBox hBoxInterno = new HBox(mensaje);
+        hBoxInterno.setAlignment(Pos.CENTER_RIGHT); // Alinear el contenido del HBox interno a la derecha
+        hBoxInterno.setMaxWidth(Region.USE_PREF_SIZE); // Asegurar que el ancho se ajuste al contenido
+
+        // Crear el HBox externo (que ocupa todo el ancho del ListView)
+        HBox hBoxExterno = new HBox(hBoxInterno);
+        hBoxExterno.setAlignment(Pos.CENTER_RIGHT); // Forzar que el HBox interno esté alineado a la derecha
+        return hBoxExterno;
+    }
+
+    public HBox leftMessage(Label mensaje){
+        mensaje.setStyle("-fx-background-color: lightgreen; -fx-padding: 10; -fx-border-radius: 10; -fx-background-radius: 10;");
+
+        HBox hBoxInternoIzquierda = new HBox(mensaje);
+        hBoxInternoIzquierda.setAlignment(Pos.CENTER_LEFT); // Alinear a la izquierda
+        hBoxInternoIzquierda.setMaxWidth(Region.USE_PREF_SIZE);
+
+        HBox hBoxExternoIzquierda = new HBox(hBoxInternoIzquierda);
+        hBoxExternoIzquierda.setAlignment(Pos.CENTER_LEFT);
+        return hBoxExternoIzquierda;
+    }
+
 
 
 }
