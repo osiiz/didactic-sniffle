@@ -1,13 +1,10 @@
 package org.example.p5_grafico;
 
 import javafx.application.Platform;
-import org.example.p5_grafico.db.ClientData;
-import org.example.p5_grafico.db.ClientRepository;
 import org.example.p5_grafico.db.Message;
 
 import java.rmi.Naming;
 import java.rmi.RemoteException;
-import java.rmi.server.RemoteRef;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.Timestamp;
 import java.util.*;
@@ -44,8 +41,14 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         return username;
     }
 
-    public String getPassword() {
-        return password;
+    public boolean register(String username, String password){
+        boolean status = false;
+        try {
+            status = getServer().register(this, username, password);
+        } catch(RemoteException e) {
+            System.out.println(e.getMessage());
+        }
+        return status;
     }
 
     @Override
@@ -58,7 +61,7 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         System.out.println("[+]" + name + ": " + msg);
         Platform.runLater(() -> {
             try {
-                ControllerLogin.trapallada.receiveMessage(new Message(name, username, new Timestamp(System.currentTimeMillis()), msg.getContent()));
+                ControllerLogin.controllerMsgGui.receiveMessage(new Message(name, username, new Timestamp(System.currentTimeMillis()), msg.getContent()));
             } catch (RemoteException e) {
                 throw new RuntimeException(e);
             }
@@ -92,7 +95,6 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
                     this.chats.put(other, new ArrayList<>());
                 }
                 this.chats.get(other).add(msg);
-
                 return true;
             }
 
@@ -162,19 +164,34 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
 
 
     public List<InterfazMessage> getChatFrom(String username) {
+        if (!this.chats.containsKey(username)){
+            try {
+                this.chats.put(username, getServer().getChat(this, this.password, username));
+            } catch (RemoteException e) {
+                System.out.println("[!] Error(getChatFrom): " + e.getMessage());
+            }
+        }
+
         return this.chats.get(username);
     }
 
     public List<String> getFriends() {
-        return this.chats.keySet().stream().toList();
+        try {
+            return new ArrayList<>(getServer().listClients(this));
+        } catch (RemoteException e) {
+            System.out.println(e.getMessage());
+        }
+        return List.of();
     }
 
-    public void saveMessages(List<InterfazMessage> msgs) {
+
+    public Set<String> listAllClients(){
         try {
-            getServer().saveMessages(this, this.password, msgs);
-        } catch (RemoteException e) {
-            System.out.println("[!] Error(saveMessages): " + e.getMessage());
+            return getServer().listAllClients(this);
+        }catch(RemoteException e)  {
+            System.out.println(e.getMessage());
         }
+        return new HashSet<>();
     }
 
     @Override
@@ -188,8 +205,6 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
            this.connectedClients.put(username, other);
         }
 
-        // TODO: Igual poner que se abra una ventana en la gui para avisar
-
     }
 
     @Override
@@ -197,7 +212,6 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         this.connectedClients.remove(other.getName());
     }
 
-    // TODO: Usar esta funcion cuando se le da a la X o cuando se hace exit
     public void disconnect(List<InterfazMessage> liveMsgs) {
         try {
             getServer().saveMessages(this, this.password, liveMsgs);
@@ -226,9 +240,12 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         return Set.of();
     }
 
-    public void removeFriend(String other) {
+    public void removeFriend(String other, List<InterfazMessage> liveMsgs) {
         try {
             getServer().removeFriends(this, this.password, other);
+            this.chats.remove(other);
+            this.connectedClients.remove(other);
+            getServer().saveMessages(this, this.password, liveMsgs);
         } catch(RemoteException e) {
             System.out.println("[!] Error(removeFriend): " +  e.getMessage());
         }
@@ -242,6 +259,18 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         } catch(RemoteException e) {
             System.out.println("[!] Error(acceptFriendRequest): " +  e.getMessage());
         }
+    }
+    public boolean updatePassword(String newPassword) {
+        try {
+           boolean status = getServer().updatePassword(this, this.password, newPassword);
+           if (status) {
+               this.password = newPassword;
+           }
+           return status;
+        } catch (RemoteException e) {
+            System.out.println(e.getMessage());
+        }
+        return false;
     }
 }
 

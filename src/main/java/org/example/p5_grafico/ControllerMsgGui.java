@@ -1,31 +1,20 @@
 package org.example.p5_grafico;
 
-import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
-import org.example.p5_grafico.db.ClientData;
-import org.example.p5_grafico.db.ClientRepository;
 import org.example.p5_grafico.db.Message;
-import org.example.p5_grafico.db.MessageRepository;
-
 import java.rmi.RemoteException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ControllerMsgGui {
-    private ClientRepository clientRepository = new ClientRepository();
-    private MessageRepository messageRepository = new MessageRepository();
     private List<InterfazMessage> liveMsgs; // Mensajes que se envian mientras el cliente esta activo. Estos luego se irian a la BD
-    private Cliente client; // Cliente al que se le esta enviando
-    private InterfazServidor servidor;
     private Stage stage;
 
     @FXML
@@ -35,7 +24,7 @@ public class ControllerMsgGui {
     @FXML
     private Button btnExit;
     @FXML
-    private ChoiceBox<String> cbUsers;
+    public ChoiceBox<String> cbUsers;
     @FXML
     private ListView<HBox> lvMsgs;
     @FXML
@@ -44,14 +33,14 @@ public class ControllerMsgGui {
     private Button btnRemoveFriends;
     @FXML
     private Button btnFriendReq;
+    @FXML
+    private Button btnChangePass;
 
 
-    public void initializeData(Cliente client, InterfazServidor servidor) {
-        this.client = client;
-        this.servidor = servidor;
+    public void initializeData(Cliente client) {
         liveMsgs = new ArrayList<>();
         btnSend.setDisable(true);
-        lvMsgs.setCellFactory(param -> new ListCell<HBox>() {
+        lvMsgs.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(HBox item, boolean empty) {
                 super.updateItem(item, empty);
@@ -102,15 +91,23 @@ public class ControllerMsgGui {
 
         cbUsers.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             btnSend.setDisable(newSelection == null);
+            if (newSelection == null) lvMsgs.getItems().clear();
         });
 
         btnSend.setOnAction(event -> {
+
             String to = cbUsers.getValue();
+            if (!client.getFriends().contains(to)) {
+                cbUsers.setValue(null);
+                txtMsg.clear();
+                return;
+            }
+
             String content = txtMsg.getText();
             if (to == null || content.isEmpty()) {
                 return;
             }
-            Boolean enviado = null;
+            Boolean enviado;
             try {
                 enviado = client.sendMessage(cbUsers.getValue(), txtMsg.getText());
             } catch (RemoteException e) {
@@ -131,16 +128,20 @@ public class ControllerMsgGui {
         });
 
         btnRemoveFriends.setOnAction(event -> {
-            new FriendsWindow(client, servidor).start(new Stage());
+            new FriendsWindow(client, liveMsgs, this).start(new Stage());
         });
 
         btnFriendReq.setOnAction(event -> {
-            new RequestsWindow(client, servidor).start(new Stage());
+            new RequestsWindow(client).start(new Stage());
         });
 
         btnExit.setOnAction(event -> {
             client.disconnect(liveMsgs);
             this.stage.close();
+        });
+
+        btnChangePass.setOnAction(event ->{
+            new ChangePassWindow(client).start(new Stage());
         });
 
         this.stage.setOnCloseRequest(event -> {
@@ -153,18 +154,13 @@ public class ControllerMsgGui {
         if (cbUsers.getValue() == null || !cbUsers.getValue().equals(msg.getFrom())) {
             return;
         }
-        HBox msgBox;
+
         String content = msg.getContent();
         int charNombre = msg.getFrom().length() + 4; // 4 = 2 corchetes + 2 puntos + 1 espacio
         Label mensaje = new Label("[" + msg.getFrom() + "]: " + dividirEnLineas(content, 50, charNombre));
         lvMsgs.getItems().add(leftMessage(mensaje));
         lvMsgs.refresh();
         lvMsgs.scrollTo(lvMsgs.getItems().size() - 1);
-    }
-
-    public void updateUsers() {
-        cbUsers.getItems().clear();
-        cbUsers.getItems().addAll(client.getFriends());
     }
 
     public String dividirEnLineas(String texto, int ancho, int charNombre) {

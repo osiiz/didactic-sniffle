@@ -9,25 +9,13 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class Servidor extends UnicastRemoteObject {
     public static final int PORT = 7777;
-    private static Servidor instance;
 
     public Servidor() throws RemoteException {
         super();
     }
 
-    public static Servidor Get() {
-        if (instance == null) {
-            try {
-                instance = new Servidor();
-            } catch (RemoteException e) {
-                System.out.println(e);
-            }
-        }
-        return instance;
-    }
-
     public static void main(String[] args) throws RemoteException{
-        Servidor.Get().start();
+        new Servidor().start();
     }
     public void start() {
         try{

@@ -23,25 +23,6 @@ public class FriendRequestRepository {
             e.printStackTrace();
         }
     }
-    public List<FriendRequest> getFriendRequestsFromClient(String client) {
-        Connection connection = Database.getConnection();
-        List<FriendRequest> friendRequests = new ArrayList<>();
-
-        try {
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM friend_requests WHERE from_client=?");
-            stmt.setString(1, client);
-            ResultSet rs = stmt.executeQuery();
-            while(rs.next()) {
-                FriendRequest rq = new FriendRequest(rs.getTimestamp("time"),rs.getString("from_client"),rs.getString("to_client"));
-                friendRequests.add(rq);
-            }
-            stmt.close();
-        } catch(SQLException e) {
-            e.printStackTrace();
-        }
-
-        return friendRequests;
-    }
 
     public List<FriendRequest> getFriendRequestsToClient(String client) {
         Connection connection = Database.getConnection();

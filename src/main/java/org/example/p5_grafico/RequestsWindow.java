@@ -2,7 +2,6 @@ package org.example.p5_grafico;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
@@ -10,28 +9,26 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.Set;
 
 public class RequestsWindow extends Application {
-    // Lista de peticiones de amistad existentes
-    private ObservableList<String> peticiones;
+    private final ObservableList<String> peticiones;
+    private final Cliente client;
+    private final Set<String> usuarios;
 
-    // Lista de usuarios disponibles para enviar solicitudes
-    private ObservableList<String> usuariosDisponibles;
-    private Cliente client;
-    private InterfazServidor servidor;
-
-    public RequestsWindow(Cliente client, InterfazServidor servidor) {
+    public RequestsWindow(Cliente client) {
         this.peticiones = FXCollections.observableArrayList(client.getPendingRequests());
         this.client = client;
+        this.usuarios = client.listAllClients();
+        this.usuarios.remove(client.getName());
+        client.getFriends().forEach(this.usuarios::remove);
     }
 
     @Override
     public void start(Stage stage) {
         // ListView para mostrar las peticiones
         ListView<String> listViewPeticiones = new ListView<>(peticiones);
+        ListView<String> listViewUsuarios = new ListView<>();
 
         // Personalizar las celdas para incluir botones de "Aceptar" y "Rechazar"
         listViewPeticiones.setCellFactory(param -> new ListCell<>() {
@@ -52,6 +49,8 @@ public class RequestsWindow extends Application {
                         peticiones.remove(item);
                         System.out.println("Aceptada: " + item);
                         client.acceptFriendRequest(item);
+                        usuarios.remove(item);
+                        listViewUsuarios.getItems().remove(item);
                     });
 
                     // Botón para rechazar la petición
@@ -75,7 +74,7 @@ public class RequestsWindow extends Application {
         });
 
         // ListView para mostrar los usuarios disponibles
-        ListView<String> listViewUsuarios = new ListView<>();
+        listViewUsuarios.getItems().addAll(usuarios);
 
         // Personalizar las celdas para incluir botón de "Enviar Solicitud"
         listViewUsuarios.setCellFactory(param -> new ListCell<>() {
@@ -93,8 +92,9 @@ public class RequestsWindow extends Application {
                     // Botón para enviar solicitud
                     Button btnEnviarSolicitud = new Button("Enviar Solicitud");
                     btnEnviarSolicitud.setOnAction(e -> {
-                        peticiones.add(item + " te envió una solicitud");
-                        System.out.println("Solicitud enviada a: " + item);
+                        client.sendFriendRequest(item);
+                        usuarios.remove(item);
+                        listViewUsuarios.getItems().remove(item);
                     });
 
                     // Contenedor para la celda
@@ -110,10 +110,15 @@ public class RequestsWindow extends Application {
         TextField txtBuscar = new TextField();
         txtBuscar.setPromptText("Buscar usuarios...");
         txtBuscar.textProperty().addListener((observable, oldValue, newValue) -> {
-            // Filtrar usuarios disponibles
-            listViewUsuarios.setItems(usuariosDisponibles.filtered(user ->
-                    user.toLowerCase().contains(newValue.toLowerCase())
-            ));
+            System.out.println(newValue);
+            listViewUsuarios.setItems(FXCollections.observableArrayList(usuarios));
+
+            if (newValue.isEmpty()) {
+                return;
+            }
+
+            ObservableList<String> filtrados = listViewUsuarios.getItems().filtered(c -> c.toLowerCase().contains(newValue.toLowerCase()));
+            listViewUsuarios.setItems(filtrados);
         });
 
         // Diseño para la búsqueda

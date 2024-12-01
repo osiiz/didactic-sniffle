@@ -8,42 +8,28 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import org.example.p5_grafico.db.ClientRepository;
 
 import java.io.IOException;
 
 public class ControllerLogin {
     @FXML
     private TextField txtUsername;
-
     @FXML
     private PasswordField txtPass;
-
     @FXML
     private Button btnEnter;
-
     @FXML
     private Button btnExit;
-
     @FXML
     private Button btnRegister;
 
 
     private static String username;
     private static String password;
-    private static Runnable onLoginCallback;
-    private final ClientRepository clientRepository = new ClientRepository();
 
-    public static void setOnLoginCallback(Runnable callback) {
-        onLoginCallback = callback; // Registrar el callback
-    }
 
-    public static String getUsername() {
-        return username; // Obtener el username ingresado
-    }
 
-    public static String getPassword() {return password;}
-    public static ControllerMsgGui trapallada;
+    public static ControllerMsgGui controllerMsgGui;
 
     @FXML
     private void initialize() {
@@ -56,9 +42,6 @@ public class ControllerLogin {
                 return;
             }
             if (c.connect(username, password)) {
-                if (onLoginCallback != null) {
-                    onLoginCallback.run(); // Ejecutar el callback
-                }
                 openMainGUI(); // Abrir la ventana principal
                 closeWindow(); // Cerrar la ventana
             }else{
@@ -78,9 +61,9 @@ public class ControllerLogin {
                 showErrorAlert();
                 return;
             }
-            clientRepository.registerClient(username, password);
-            if (onLoginCallback != null) {
-                onLoginCallback.run(); // Ejecutar el callback
+            boolean status = Cliente.Get().register(username, password);
+            if (!status) {
+                showErrorAlert();
             }
             btnEnter.fire();
         });
@@ -93,9 +76,9 @@ public class ControllerLogin {
             Scene scene = new Scene(loader.load());
 
             // Obtener el controlador de la GUI principal para pasar datos
-            trapallada = loader.getController();
-            trapallada.setStage(stage);
-            trapallada.initializeData(Cliente.Get(), Cliente.Get().getServer()); // Pasar el nombre de usuario
+            controllerMsgGui = loader.getController();
+            controllerMsgGui.setStage(stage);
+            controllerMsgGui.initializeData(Cliente.Get()); // Pasar el nombre de usuario
 
             stage.setTitle("P2P Chat - Principal");
             stage.setScene(scene);

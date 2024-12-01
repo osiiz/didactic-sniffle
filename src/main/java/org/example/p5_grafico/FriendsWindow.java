@@ -9,13 +9,17 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
-public class FriendsWindow extends Application {
-    private Cliente client;
-    private InterfazServidor servidor;
 
-    public FriendsWindow(Cliente client, InterfazServidor servidor) {
+import java.util.List;
+
+public class FriendsWindow extends Application {
+    private final Cliente client;
+    private final List<InterfazMessage> liveMsgs;
+    private final ControllerMsgGui gui;
+    public FriendsWindow(Cliente client, List<InterfazMessage> liveMsgs, ControllerMsgGui controller) {
         this.client = client;
-        this.servidor = servidor;
+        this.liveMsgs = liveMsgs;
+        this.gui = controller;
     }
 
     @Override
@@ -37,7 +41,8 @@ public class FriendsWindow extends Application {
             String seleccionado = listView.getSelectionModel().getSelectedItem();
             if (seleccionado != null) {
                 friends.remove(seleccionado); // Eliminar el amigo de la lista
-                client.removeFriend(seleccionado); // Eliminar el amigo de la base de datos
+                client.removeFriend(seleccionado, liveMsgs); // Eliminar el amigo de la base de datos
+                gui.cbUsers.setValue(null);
             }
         });
 

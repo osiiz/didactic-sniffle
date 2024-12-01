@@ -14,5 +14,6 @@
       <Button fx:id="btnRemoveFriends" layoutX="312.0" layoutY="426.0" mnemonicParsing="false" text="Remove Friends" />
       <Button fx:id="btnFriendReq" layoutX="197.0" layoutY="426.0" mnemonicParsing="false" text="Friend Requests" />
       <Label layoutX="194.0" layoutY="48.0" text="Chat with:" />
+      <Button fx:id="btnChangePass" layoutX="467.0" layoutY="426.0" mnemonicParsing="false" text="Change Password" />
    </children>
 </AnchorPane>

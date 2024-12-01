@@ -1,5 +1,4 @@
 package org.example.p5_grafico;
-import org.example.p5_grafico.db.Message;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;

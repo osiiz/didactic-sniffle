@@ -1,6 +1,4 @@
 package org.example.p5_grafico;
-
-import javafx.application.Platform;
 import org.example.p5_grafico.db.*;
 
 import java.rmi.RemoteException;
@@ -25,10 +23,21 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
     }
 
     @Override
+    public Set<String> listAllClients(InterfazCliente cliente) throws RemoteException{
+        if (!clients.containsKey(cliente.getName())) {
+            return Set.of();
+        }
+        return new HashSet<>(clientRepo.getClients().stream().map(ClientData::getUsername).toList());
+    }
+
+    @Override
     public boolean connect(InterfazCliente cliente, String username, String password) throws RemoteException {
         if (clientRepo.verifyClient(username, password)) {
+            List<String> friends = frRepo.getFriendsFrom(username);
             for (InterfazCliente c: clients.values()) {
-                c.notifyConnection(cliente, username);
+                if (friends.contains(c.getName())) {
+                    c.notifyConnection(cliente, username);
+                }
             }
 
             clients.put(username, cliente);
@@ -39,13 +48,27 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
     }
 
     @Override
+    public boolean register(InterfazCliente cliente, String username, String password) throws RemoteException {
+        for (ClientData c : clientRepo.getClients()) {
+           if (c.getUsername().equals(username)) {
+               return false;
+           }
+        }
+        clientRepo.registerClient(username, password);
+        return true;
+    }
+
+    @Override
     public void disconnect(InterfazCliente cliente, String password) throws RemoteException {
         if(!clientRepo.verifyClient(cliente.getName(), password) || !clients.containsKey(cliente.getName())) {
             return;
         }
         clients.remove(cliente.getName());
+        List<String> friends = frRepo.getFriendsFrom(cliente.getName());
         for (InterfazCliente c: clients.values()) {
-            c.notifyDisconnection(cliente);
+            if (friends.contains(c.getName())) {
+                c.notifyDisconnection(cliente);
+            }
         }
         System.out.println("[-] Client \"" + cliente.getName() + "\" disconnected.");
     }
@@ -55,20 +78,6 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
         if (!clients.containsKey(client.getName())) {
             return Set.of();
         }
-        /*
-        Set<String> r = new HashSet<>();
-        for (Map.Entry<String, InterfazCliente> entry: clients.entrySet()) {
-            if (entry.getKey().equals(client.getName())) {
-                continue;
-            }
-            r.add(entry.getKey());
-        }
-        for (ClientData c: clientRepo.getClients()) {
-            if (c.getUsername().equals(client.getName())) {
-                continue;
-            }
-            r.add(c.getUsername());
-        }*/
         return new HashSet<>(frRepo.getFriendsFrom(client.getName()));
     }
 
@@ -126,16 +135,6 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
         frRepo.removeFriends(client.getName(), other);
     }
 
-    @Override
-    public void saveRequests(InterfazCliente cliente, String password, Set<String> requests) throws RemoteException {
-        if(!clientRepo.verifyClient(cliente.getName(), password) || !clients.containsKey(cliente.getName())) {
-            return;
-        }
-        for (String other: requests) {
-            FriendRequest fr = new FriendRequest(new Timestamp(System.currentTimeMillis()), cliente.getName(), other);
-            frRepo.addFriendRequest(fr);
-        }
-    }
 
     @Override
     public void acceptFriendRequest(InterfazCliente client, String password, String other) throws RemoteException {
@@ -155,6 +154,15 @@ public class ImplServidor extends UnicastRemoteObject implements InterfazServido
         }
         frRepo.removeFriendRequest(fr);
         frRepo.addFriend(client.getName(), other);
+    }
+
+    @Override
+    public boolean updatePassword(InterfazCliente cliente, String password, String newPassword) throws RemoteException {
+        if(!clientRepo.verifyClient(cliente.getName(), password) || !clients.containsKey(cliente.getName())) {
+            return false;
+        }
+        clientRepo.updatePassword(cliente.getName(), password, newPassword);
+        return true;
     }
 }
 

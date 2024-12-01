@@ -8,8 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientRepository {
-    // TODO: Obviamente la clave no deberia estar aqui
-    public static final String ENCRYPTION_KEY = "mango";
+    public static final String ENCRYPTION_KEY = "o8N5C3e9X7;3P4;2e2&27";
 
     public ClientRepository() {}
 
@@ -29,11 +28,7 @@ public class ClientRepository {
         return clients;
     }
 
-    /**
-     * No checkea si ya existe un cliente con ese nombre!
-     * @param username nombre del cliente
-     * @param password contrasena del cliente
-     */
+
     public void registerClient(String username, String password) {
         Connection conn = Database.getConnection();
         try {
@@ -46,7 +41,6 @@ public class ClientRepository {
             System.out.println(e.getMessage());
         }
     }
-    // TODO hashear la password
     public boolean verifyClient(String username, String password) {
         Connection conn = Database.getConnection();
         try {
@@ -60,5 +54,17 @@ public class ClientRepository {
             System.out.println(e.getMessage());
         }
         return false;
+    }
+    public void updatePassword(String username, String password, String newPassword) {
+        Connection conn = Database.getConnection();
+        try {
+            PreparedStatement stmt = conn.prepareStatement("UPDATE clients set password = ? where username like ? and password like ?");
+            stmt.setString(1, AES.Encrypt(newPassword, ENCRYPTION_KEY));
+            stmt.setString(2, username);
+            stmt.setString(3, AES.Encrypt(password, ENCRYPTION_KEY));
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
