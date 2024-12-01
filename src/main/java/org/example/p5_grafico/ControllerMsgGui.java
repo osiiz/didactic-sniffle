@@ -8,6 +8,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.stage.Stage;
 import org.example.p5_grafico.db.ClientData;
 import org.example.p5_grafico.db.ClientRepository;
 import org.example.p5_grafico.db.Message;
@@ -37,6 +38,10 @@ public class ControllerMsgGui {
     @FXML
     private Label txtWelcome;
     @FXML
+    private Button btnRemoveFriends;
+    @FXML
+    private Button btnFriendReq;
+    @FXML
     public void initialize() {
     }
 
@@ -44,18 +49,21 @@ public class ControllerMsgGui {
     public void initializeData(Cliente client) {
         this.client = client;
         liveMsgs = new ArrayList<>();
+        btnSend.setDisable(true);
         lvMsgs.setCellFactory(param -> new ListCell<HBox>() {
             @Override
             protected void updateItem(HBox item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setGraphic(null);
+                    setStyle("-fx-background-color: #f0f0f0;");
                 } else {
                     setGraphic(item);
-                    //item.setMaxWidth(Region.USE_PREF_SIZE);
+                    setStyle("-fx-background-color: #f0f0f0;");
                 }
             }
         });
+        lvMsgs.setStyle("-fx-background-color: #f0f0f0;");
 
         txtWelcome.setText("Bienvenido, " + client.getName() + "!");
         cbUsers.getItems().addAll(client.getFriends());
@@ -91,6 +99,10 @@ public class ControllerMsgGui {
             }
         });
 
+        cbUsers.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            btnSend.setDisable(newSelection == null);
+        });
+
         btnSend.setOnAction(event -> {
             String to = cbUsers.getValue();
             String content = txtMsg.getText();
@@ -117,6 +129,10 @@ public class ControllerMsgGui {
             txtMsg.clear();
         });
 
+        btnRemoveFriends.setOnAction(event -> {
+            new FriendsWindow(client).start(new Stage());
+        });
+
         btnExit.setOnAction(event -> {
             client.saveMessages(liveMsgs);
             System.exit(0);
@@ -125,6 +141,9 @@ public class ControllerMsgGui {
 
 
     public void receiveMessage(Message msg) {
+        if (cbUsers.getValue() == null || !cbUsers.getValue().equals(msg.getFrom())) {
+            return;
+        }
         HBox msgBox;
         String content = msg.getContent();
         int charNombre = msg.getFrom().length() + 4; // 4 = 2 corchetes + 2 puntos + 1 espacio
