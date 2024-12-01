@@ -66,7 +66,10 @@ public class ControllerLogin {
             }
         });
 
-        btnExit.setOnAction(event -> closeWindow());
+        btnExit.setOnAction(event -> {
+            closeWindow();
+            System.exit(0);
+        });
 
         btnRegister.setOnAction(event -> {
             username = txtUsername.getText();

@@ -2,9 +2,12 @@ package org.example.p5_grafico;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import org.example.p5_grafico.db.ClientData;
 import org.example.p5_grafico.db.ClientRepository;
 import org.example.p5_grafico.db.Message;
@@ -49,6 +52,7 @@ public class ControllerMsgGui {
                     setGraphic(null);
                 } else {
                     setGraphic(item);
+                    //item.setMaxWidth(Region.USE_PREF_SIZE);
                 }
             }
         });
@@ -72,16 +76,33 @@ public class ControllerMsgGui {
                 List<InterfazMessage> msgs = client.getChatFrom(cbUsers.getValue());
                 lvMsgs.getItems().clear();
                 for (InterfazMessage msg : msgs) {
-                    HBox msgBox;
+                    int charNombre = msg.getFrom().length() + 4; // 4 = 2 corchetes + 2 puntos + 1 espacio
+                    Label mensaje = new Label("[" + msg.getFrom() + "]: " + dividirEnLineas(msg.getContent(), 50, charNombre));
+
                     if (msg.getFrom().equals(client.getName())) {
-                        msgBox = new HBox(new Label("[" + msg.getFrom() + "]: " + msg.getContent()));
-                        msgBox.setAlignment(Pos.CENTER_RIGHT);
+                        mensaje.setStyle("-fx-background-color: lightblue; -fx-padding: 10; -fx-border-radius: 10; -fx-background-radius: 10;");
+                        // Crear el HBox interno (que se ajusta al contenido)
+                        HBox hBoxInterno = new HBox(mensaje);
+                        hBoxInterno.setAlignment(Pos.CENTER_RIGHT); // Alinear el contenido del HBox interno a la derecha
+                        hBoxInterno.setMaxWidth(Region.USE_PREF_SIZE); // Asegurar que el ancho se ajuste al contenido
+
+                        // Crear el HBox externo (que ocupa todo el ancho del ListView)
+                        HBox hBoxExterno = new HBox(hBoxInterno);
+                        hBoxExterno.setAlignment(Pos.CENTER_RIGHT); // Forzar que el HBox interno esté alineado a la derecha
+                        lvMsgs.getItems().add(hBoxExterno);
                     } else {
-                        msgBox = new HBox(new Label("[" + msg.getFrom() + "]: " + msg.getContent()));
-                        msgBox.setAlignment(Pos.CENTER_LEFT);
+                        mensaje.setStyle("-fx-background-color: lightgreen; -fx-padding: 10; -fx-border-radius: 10; -fx-background-radius: 10;");
+
+                        HBox hBoxInternoIzquierda = new HBox(mensaje);
+                        hBoxInternoIzquierda.setAlignment(Pos.CENTER_LEFT); // Alinear a la izquierda
+                        hBoxInternoIzquierda.setMaxWidth(Region.USE_PREF_SIZE);
+
+                        HBox hBoxExternoIzquierda = new HBox(hBoxInternoIzquierda);
+                        hBoxExternoIzquierda.setAlignment(Pos.CENTER_LEFT);
+                        lvMsgs.getItems().add(hBoxExternoIzquierda);
                     }
-                    lvMsgs.getItems().add(msgBox);
                 }
+
                 lvMsgs.scrollTo(msgs.size() - 1);
             } catch (RemoteException e) {
                 System.out.println(e.getMessage());
@@ -101,8 +122,10 @@ public class ControllerMsgGui {
                 throw new RuntimeException(e);
             }
             if (enviado){
-                HBox msgBox = new HBox(new Label("[" + client.getName() + "]: " + content));
+                int charNombre = client.getName().length() + 4; // 4 = 2 corchetes + 2 puntos + 1 espacio
+                HBox msgBox = new HBox(new Label("[" + client.getName() + "]: " + dividirEnLineas(content, 50, charNombre)));
                 msgBox.setAlignment(Pos.CENTER_RIGHT);
+                msgBox.setStyle("-fx-background-color: lightblue; -fx-padding: 10; -fx-border-radius: 10; -fx-background-radius: 10;");
                 lvMsgs.getItems().add(msgBox);
                 try {
                     liveMsgs.add(new Message(client.getName(), to, new Timestamp(System.currentTimeMillis()), content));
@@ -123,9 +146,11 @@ public class ControllerMsgGui {
 
     public void receiveMessage(Message msg) {
         HBox msgBox;
-        msgBox = new HBox(new Label("[" + msg.getTo() + "]: " + msg.getContent()));
-        System.out.println("[" + msg.getTo() + "]: " + msg.getContent());
+        String content = msg.getContent();
+        int charNombre = msg.getFrom().length() + 4; // 4 = 2 corchetes + 2 puntos + 1 espacio
+        msgBox = new HBox(new Label("[" + msg.getFrom() + "]: " + dividirEnLineas(content, 50, charNombre)));
         msgBox.setAlignment(Pos.CENTER_LEFT);
+        msgBox.setStyle("-fx-background-color: lightgreen; -fx-padding: 10; -fx-border-radius: 10; -fx-background-radius: 10;");
         lvMsgs.getItems().add(msgBox);
         lvMsgs.refresh();
         lvMsgs.scrollTo(lvMsgs.getItems().size() - 1);
@@ -134,6 +159,28 @@ public class ControllerMsgGui {
     public void updateUsers() {
         cbUsers.getItems().clear();
         cbUsers.getItems().addAll(client.getFriends());
+    }
+
+    public static String dividirEnLineas(String texto, int ancho, int charNombre) {
+        StringBuilder resultado = new StringBuilder();
+        int longitud = texto.length();
+        int anchoFirstLine = ancho - charNombre;
+
+        for (int i = 0; i < longitud; i += ancho) {
+            if (i == 0) {
+                if (i + anchoFirstLine < longitud) {
+                    resultado.append(texto, i, i + anchoFirstLine).append("\n");
+                } else {
+                    resultado.append(texto.substring(i));
+                }
+            } else if (i + ancho < longitud) {
+                resultado.append(texto, i, i + ancho).append("\n");
+            } else {
+                resultado.append(texto.substring(i));
+            }
+        }
+
+        return resultado.toString();
     }
 
 
