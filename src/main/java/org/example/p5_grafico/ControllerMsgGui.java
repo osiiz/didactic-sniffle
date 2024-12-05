@@ -37,6 +37,8 @@ public class ControllerMsgGui {
     private Button btnFriendReq;
     @FXML
     private Button btnChangePass;
+    @FXML
+    private Label isConnected;
 
 
     public void initializeData(Cliente client) {
@@ -56,15 +58,15 @@ public class ControllerMsgGui {
             }
         });
         lvMsgs.setStyle("-fx-background-color: #f0f0f0;");
+        isConnected.setVisible(false);
 
         txtWelcome.setText("Bienvenido, " + client.getName() + "!");
         cbUsers.getItems().addAll(client.getFriends());
 
         cbUsers.setOnShowing(event -> {
             cbUsers.getItems().clear();
-            List<String> friends = new ArrayList<>(client.getFriends());
-            Set<String> connected = client.getConnectedClients();
-            cbUsers.getItems().addAll(friends);
+            isConnected.setVisible(false);
+            cbUsers.getItems().addAll(client.getFriends());
         });
 
         cbUsers.setOnAction(event -> {
@@ -93,6 +95,13 @@ public class ControllerMsgGui {
                     }
                 }
                 lvMsgs.scrollTo(msgs.size() - 1);
+                if (client.isConnected(cbUsers.getValue())) {
+                    isConnected.setText("· Conectado");
+                    isConnected.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+                    isConnected.setVisible(true);
+                } else {
+                    isConnected.setVisible(false);
+                }
             } catch (RemoteException e) {
                 System.out.println(e.getMessage());
             }

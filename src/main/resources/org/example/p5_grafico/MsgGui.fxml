@@ -7,13 +7,14 @@
    <children>
       <Button fx:id="btnSend" layoutX="533.0" layoutY="383.0" mnemonicParsing="false" text="Send" />
       <TextField fx:id="txtMsg" layoutX="24.0" layoutY="383.0" prefHeight="25.0" prefWidth="498.0" />
-      <ChoiceBox fx:id="cbUsers" layoutX="256.0" layoutY="44.0" prefWidth="150.0" />
+      <ChoiceBox fx:id="cbUsers" layoutX="236.0" layoutY="43.0" prefWidth="150.0" />
       <ListView fx:id="lvMsgs" layoutX="23.0" layoutY="77.0" prefHeight="296.0" prefWidth="553.0" />
       <Label fx:id="txtWelcome" layoutX="284.0" layoutY="14.0" text="Label" />
       <Button fx:id="btnExit" layoutX="23.0" layoutY="426.0" mnemonicParsing="false" text="Exit" />
       <Button fx:id="btnRemoveFriends" layoutX="312.0" layoutY="426.0" mnemonicParsing="false" text="Remove Friends" />
       <Button fx:id="btnFriendReq" layoutX="197.0" layoutY="426.0" mnemonicParsing="false" text="Friend Requests" />
-      <Label layoutX="194.0" layoutY="48.0" text="Chat with:" />
+      <Label layoutX="174.0" layoutY="47.0" text="Chat with:" />
       <Button fx:id="btnChangePass" layoutX="467.0" layoutY="426.0" mnemonicParsing="false" text="Change Password" />
+      <Label fx:id="isConnected" layoutX="393.0" layoutY="47.0" text="Label" />
    </children>
 </AnchorPane>

@@ -114,6 +114,22 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         return false;
     }
 
+    public boolean isConnected(String other){
+        boolean result = this.connectedClients.containsKey(other) && this.connectedClients.get(other) != null;
+        if (result){
+            return true;
+        }
+        try{
+            InterfazCliente client = getServer().isConnected(this, this.password, other);
+            if (client != null) {
+                result = true;
+            }
+        } catch (RemoteException e) {
+            System.out.println("[!] Error(isConnected): " + e.getMessage());
+        }
+        return result;
+    }
+
 
     public void start() {
         new Thread(() -> VentanaLogin.launch(VentanaLogin.class)).start();
