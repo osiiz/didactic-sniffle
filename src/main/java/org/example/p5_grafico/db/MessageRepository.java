@@ -53,7 +53,7 @@ public class MessageRepository {
            stmt.executeUpdate();
            stmt.close();
         } catch(SQLException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 

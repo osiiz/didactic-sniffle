@@ -10,8 +10,8 @@
       <PasswordField fx:id="txtPass" layoutX="78.0" layoutY="100.0" prefHeight="25.0" prefWidth="214.0" />
       <TextField fx:id="txtUsername" layoutX="78.0" layoutY="61.0" prefHeight="25.0" prefWidth="214.0" />
       <Label layoutX="99.0" layoutY="28.0" text="Welcome to P2PChat!" />
-      <Button fx:id="btnEnter" layoutX="248.0" layoutY="137.0" mnemonicParsing="false" text="Enter" />
-      <Button fx:id="btnExit" layoutX="14.0" layoutY="137.0" mnemonicParsing="false" text="Exit" />
+      <Button fx:id="btnEnter" layoutX="248.0" layoutY="137.0" mnemonicParsing="false" text="Enter"/>
+      <Button fx:id="btnExit" layoutX="14.0" layoutY="137.0" mnemonicParsing="false" text="Exit"/>
       <Button fx:id="btnRegister" layoutX="177.0" layoutY="137.0" mnemonicParsing="false" text="Register" />
    </children>
 </Pane>

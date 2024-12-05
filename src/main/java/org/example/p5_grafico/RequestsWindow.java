@@ -47,7 +47,6 @@ public class RequestsWindow extends Application {
                     Button btnAceptar = new Button("Aceptar");
                     btnAceptar.setOnAction(e -> {
                         peticiones.remove(item);
-                        System.out.println("Aceptada: " + item);
                         client.acceptFriendRequest(item);
                         usuarios.remove(item);
                         listViewUsuarios.getItems().remove(item);
@@ -57,7 +56,6 @@ public class RequestsWindow extends Application {
                     Button btnRechazar = new Button("Rechazar");
                     btnRechazar.setOnAction(e -> {
                         peticiones.remove(item);
-                        System.out.println("Rechazada: " + item);
                     });
 
                     // Contenedor para los botones
@@ -110,7 +108,6 @@ public class RequestsWindow extends Application {
         TextField txtBuscar = new TextField();
         txtBuscar.setPromptText("Buscar usuarios...");
         txtBuscar.textProperty().addListener((observable, oldValue, newValue) -> {
-            System.out.println(newValue);
             listViewUsuarios.setItems(FXCollections.observableArrayList(usuarios));
 
             if (newValue.isEmpty()) {

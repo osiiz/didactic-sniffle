@@ -12,6 +12,8 @@ import java.rmi.RemoteException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ControllerMsgGui {
     private List<InterfazMessage> liveMsgs; // Mensajes que se envian mientras el cliente esta activo. Estos luego se irian a la BD
@@ -60,18 +62,25 @@ public class ControllerMsgGui {
 
         cbUsers.setOnShowing(event -> {
             cbUsers.getItems().clear();
-            cbUsers.getItems().addAll(client.getFriends());
-            System.out.println(client.getFriends());
+            List<String> friends = new ArrayList<>(client.getFriends());
+            Set<String> connected = client.getConnectedClients();
+            cbUsers.getItems().addAll(friends);
         });
 
         cbUsers.setOnAction(event -> {
             try {
-                System.out.println(cbUsers.getValue());
                 if (cbUsers.getValue() == null) {
                     return;
                 }
 
                 List<InterfazMessage> msgs = client.getChatFrom(cbUsers.getValue());
+                msgs.sort((m1, m2) -> {
+                    try {
+                        return m1.getTimestamp().compareTo(m2.getTimestamp());
+                    } catch (RemoteException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
                 lvMsgs.getItems().clear();
                 for (InterfazMessage msg : msgs) {
                     int charNombre = msg.getFrom().length() + 4; // 4 = 2 corchetes + 2 puntos + 1 espacio
@@ -95,7 +104,6 @@ public class ControllerMsgGui {
         });
 
         btnSend.setOnAction(event -> {
-
             String to = cbUsers.getValue();
             if (!client.getFriends().contains(to)) {
                 cbUsers.setValue(null);
@@ -145,7 +153,6 @@ public class ControllerMsgGui {
         });
 
         this.stage.setOnCloseRequest(event -> {
-            System.out.println("Guardando mensajes...");
             client.disconnect(liveMsgs);
         });
     }

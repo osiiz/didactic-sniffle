@@ -27,7 +27,7 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
             try {
                 instancia = new Cliente();
             } catch (RemoteException e) {
-                System.out.println(e);
+                System.out.println("[!]Error (Get): "+ e);
             }
         }
         return instancia;
@@ -58,7 +58,6 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
             this.chats.put(name, new ArrayList<>());
         }
         this.chats.get(name).add(msg);
-        System.out.println("[+]" + name + ": " + msg);
         Platform.runLater(() -> {
             try {
                 ControllerLogin.controllerMsgGui.receiveMessage(new Message(name, username, new Timestamp(System.currentTimeMillis()), msg.getContent()));
@@ -179,7 +178,7 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
         try {
             return new ArrayList<>(getServer().listClients(this));
         } catch (RemoteException e) {
-            System.out.println(e.getMessage());
+            System.out.println("[!] Error(getFriends): " + e.getMessage());
         }
         return List.of();
     }
@@ -243,7 +242,6 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
     public void removeFriend(String other, List<InterfazMessage> liveMsgs) {
         try {
             getServer().removeFriends(this, this.password, other);
-            this.chats.remove(other);
             this.connectedClients.remove(other);
             getServer().saveMessages(this, this.password, liveMsgs);
         } catch(RemoteException e) {
@@ -271,6 +269,10 @@ public class Cliente extends UnicastRemoteObject implements InterfazCliente {
             System.out.println(e.getMessage());
         }
         return false;
+    }
+
+    public Set<String> getConnectedClients() {
+        return this.connectedClients.keySet();
     }
 }
 
